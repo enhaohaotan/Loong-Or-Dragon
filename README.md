@@ -1,4 +1,4 @@
-# This is my course project from Playable Media from ITU
+# This is my course project for Playable Media from ITU
 
 I want to point out the possibly implicit culture approperation when people call chinese "龙", or loong, a dragon.
 
