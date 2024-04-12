@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private RectTransform dragonTile;
 
     [SerializeField] private Image background;
+    [SerializeField] private Image card;
     [SerializeField] private Image frame;
 
     private List<RectTransform> dragonTiles;
@@ -32,18 +33,14 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        int backgroundColor = Random.Range(0, Utilities.colors.Length);
-        int tileColor = Random.Range(0, Utilities.colors.Length);
-        while (tileColor == backgroundColor)
-        {
-            tileColor = Random.Range(0, Utilities.colors.Length);
-        }
+        int colorGroupIdx = Random.Range(0, Utilities.colors.Length);
         
         int loongPosition = Random.Range(0, 4);
         int dragonCount = 0;
 
-        background.color = Utilities.colors[backgroundColor];
-        frame.color = Utilities.colors[backgroundColor];
+        background.color = Utilities.colors[colorGroupIdx][2];
+        card.color = Utilities.colors[colorGroupIdx][1];
+        frame.color = Utilities.colors[colorGroupIdx][3];
 
         List<Vector2> positions = new List<Vector2>
         {
@@ -59,19 +56,16 @@ public class GameManager : MonoBehaviour
             {
                 loongTiles[0].gameObject.SetActive (true);
                 loongTiles[0].anchoredPosition = positions[i];
-                loongTiles[0].GetComponent<Image>().color = Utilities.colors[tileColor];
+                loongTiles[0].GetComponent<Image>().color = Utilities.colors[colorGroupIdx][0];
             }
             else
             {
                 dragonTiles[dragonCount].gameObject.SetActive (true);
                 dragonTiles[dragonCount].anchoredPosition = positions[i];
-                dragonTiles[dragonCount].GetComponent<Image>().color = Utilities.colors[tileColor];
+                dragonTiles[dragonCount].GetComponent<Image>().color = Utilities.colors[colorGroupIdx][0];
                 dragonCount++;
             }
         }
-
-        
-
     }
 
 
