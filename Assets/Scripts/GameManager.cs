@@ -1,3 +1,5 @@
+using DG.Tweening;
+using Nobi.UiRoundedCorners;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -13,8 +15,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Image card;
     [SerializeField] private Image frame;
 
+    [SerializeField] private AudioSource successSound;
+    [SerializeField] private AudioSource failureSound;
+
     private List<RectTransform> dragonTiles;
     private List<RectTransform> loongTiles;
+
+    private int halfFrameSize = 360;
+    private int correctCount = 0;
 
     private void Awake()
     {   
@@ -27,56 +35,111 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < 36; i++)
         {
             dragonTiles.Add(Instantiate(dragonTile, dragonTile.parent));
-            loongTiles.Add(Instantiate(loongTile, loongTile.parent));
         }
+        loongTiles.Add(Instantiate(loongTile, loongTile.parent));
+
     }
 
     private void Start()
     {
-        int colorGroupIdx = Random.Range(0, Utilities.colors.Length);
-        
-        int loongPosition = Random.Range(0, 4);
-        int dragonCount = 0;
+        SetLayout(2);
+    }
 
-        background.color = Utilities.colors[colorGroupIdx][2];
-        card.color = Utilities.colors[colorGroupIdx][1];
-        frame.color = Utilities.colors[colorGroupIdx][3];
 
-        List<Vector2> positions = new List<Vector2>
+
+    public void OnLoongClicked(RectTransform currentTile)
+    {
+        //Debug.Log(currentTile.name);
+        successSound.Play();
+        Vector2 originalSize = currentTile.sizeDelta;
+        Vector2 scaleSize = new Vector2(currentTile.sizeDelta.x - 10, currentTile.sizeDelta.y - 10);
+        float duration = 0.1f;
+        correctCount++;
+
+        if (correctCount < 8)
         {
-            new Vector2 (150, -150),
-            new Vector2 (-150, 150),
-            new Vector2 (-150, -150),
-            new Vector2 (150, 150)
-        };
-
-        for (int i = 0; i < 4; i++)
+            currentTile.DOSizeDelta(scaleSize, duration)
+                .OnComplete(() =>
+                {
+                    currentTile.DOSizeDelta(originalSize, duration)
+                        .OnComplete(() => { SetLayout(correctCount / 2 + 2); });
+                }
+            );
+        }
+        else
         {
-            if (i ==  loongPosition)
-            {
-                loongTiles[0].gameObject.SetActive (true);
-                loongTiles[0].anchoredPosition = positions[i];
-                loongTiles[0].GetComponent<Image>().color = Utilities.colors[colorGroupIdx][0];
-            }
-            else
-            {
-                dragonTiles[dragonCount].gameObject.SetActive (true);
-                dragonTiles[dragonCount].anchoredPosition = positions[i];
-                dragonTiles[dragonCount].GetComponent<Image>().color = Utilities.colors[colorGroupIdx][0];
-                dragonCount++;
-            }
+            currentTile.DOSizeDelta(scaleSize, duration)
+                .OnComplete(() =>
+                {
+                    currentTile.DOSizeDelta(originalSize, duration)
+                        .OnComplete(() => { SetLayout(6); });
+                }
+            );
         }
     }
 
-
-
-    public void OnLoongClicked()
+    public void OnDragonClicked(RectTransform currentTile)
     {
-        Debug.Log("Loong was clicked!");
+        //Debug.Log(currentTile.name);
+        failureSound.Play();
+        Vector2 originalSize = currentTile.sizeDelta;
+        Vector2 scaleSize = new Vector2(currentTile.sizeDelta.x - 10, currentTile.sizeDelta.y - 10);
+        float duration = 0.1f;
+
+        currentTile.DOSizeDelta(scaleSize, duration)
+                .OnComplete(() =>
+                {
+                    currentTile.DOSizeDelta(originalSize, duration);
+                }
+            );
     }
 
-    public void OnDragonClicked()
+    private void SetLayout(int level)
     {
-        Debug.Log("Dragon was clicked!");
+        int colorGroupIdx = Random.Range(0, Colors.colors.Length);
+        int loongPosition = Random.Range(0, level * level);
+        int dragonCount = 0;
+
+        background.color = Colors.colors[colorGroupIdx][2];
+        card.color = Colors.colors[colorGroupIdx][1];
+        frame.color = Colors.colors[colorGroupIdx][3];
+
+        int halfTileSize = halfFrameSize / level;
+
+        List<Vector2> positions = new List<Vector2>();
+
+        for (int i = 0; i < level; i++)
+        {
+            for (int j = 0; j < level; j++)
+            {
+                int x = -halfFrameSize + halfTileSize + 2 * i * halfTileSize;
+                int y = -halfFrameSize + halfTileSize + 2 * j * halfTileSize;
+
+                Vector2 position = new Vector2 (x, y);
+                positions.Add(position);
+            }
+        }
+
+
+        for (int i = 0; i < level * level; i++)
+        {
+            if (i == loongPosition)
+            {
+                loongTiles[0].GetComponent<ImageWithRoundedCorners>().radius = (halfTileSize * 2 - 10) / 10f;
+                loongTiles[0].gameObject.SetActive(true);
+                loongTiles[0].anchoredPosition = positions[i];
+                loongTiles[0].GetComponent<Image>().color = Colors.colors[colorGroupIdx][0];
+                loongTiles[0].sizeDelta = new Vector2(halfTileSize * 2 - 10, halfTileSize * 2 - 10);
+            }
+            else
+            {
+                dragonTiles[dragonCount].GetComponent<ImageWithRoundedCorners>().radius = (halfTileSize * 2 - 10) / 10f;
+                dragonTiles[dragonCount].gameObject.SetActive(true);
+                dragonTiles[dragonCount].anchoredPosition = positions[i];
+                dragonTiles[dragonCount].GetComponent<Image>().color = Colors.colors[colorGroupIdx][0];
+                dragonTiles[dragonCount].sizeDelta = new Vector2(halfTileSize * 2 - 10, halfTileSize * 2 - 10);
+                dragonCount++;
+            }
+        }
     }
 }
