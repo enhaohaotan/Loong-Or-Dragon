@@ -1,4 +1,0 @@
-repository "Loong-Or-Dragon@unity_A085E0A990AD4215871F@cloud"
-  path "/"
-    br "/main"
-    co "/main"
